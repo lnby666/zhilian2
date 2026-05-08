@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>智链全球 · 跨境贸易AI决策系统 | 长三角数智枢纽（融合版）</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Three.js核心及扩展 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 主系统框架 */
+        .system-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(6, 14, 24, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(0, 230, 255, 0.4);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .navbar {
+            padding: 16px 28px;
+            background: rgba(2, 12, 24, 0.8);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #fff, #00e0ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .badge-version {
+            background: rgba(0, 200, 255, 0.25);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #aaffff;
+        }
+        .notification-area {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .notification-bell {
+            position: relative;
+            color: #eef;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #ef4444;
+            color: white;
+            border-radius: 30px;
+            padding: 2px 8px;
+            font-size: 10px;
+        }
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 40px;
+            width: 340px;
+            background: rgba(10, 20, 35, 0.98);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid cyan;
+            z-index: 200;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            color: #eef;
+        }
+        .main-layout {
+            display: flex;
+            min-height: 680px;
+        }
+        /* 左侧菜单 + 快速沙盒面板 */
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 10, 20, 0.6);
+            backdrop-filter: blur(4px);
+            border-right: 1px solid rgba(0, 255, 255, 0.25);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #c4e0ff;
+            transition: 0.2s;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .menu-item i { width: 24px; color: #6cb4ff; }
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(0, 150, 255, 0.25), transparent);
+            color: #ffffff;
+            border-left: 3px solid #0ff;
+            text-shadow: 0 0 4px cyan;
+        }
+        .sandbox-quick {
+            margin: 16px 16px 0 16px;
+            padding: 16px;
+            background: rgba(0, 40, 60, 0.7);
+            border-radius: 24px;
+            border: 1px solid cyan;
+        }
+        .sandbox-quick h4 {
+            color: #0ff;
+            margin-bottom: 12px;
+        }
+        .slider-group {
+            margin: 12px 0;
+            font-size: 0.8rem;
+        }
+        .slider-group label {
+            display: block;
+            margin-bottom: 4px;
+            color: #bbd4ff;
+        }
+        input[type="range"], select {
+            width: 100%;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 6px 10px;
+            color: white;
+        }
+        .sandbox-result {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 8px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+        .content-panel {
+            flex: 1;
+            padding: 24px 28px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+            color: #f0f5ff;
+        }
+        .card {
+            background: rgba(12, 22, 35, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 200, 255, 0.35);
+            transition: 0.2s;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            flex: 1;
+            background: rgba(0, 20, 40, 0.75);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.35);
+        }
+        .region-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .map-container {
+            flex: 2;
+            background: #03060c;
+            border-radius: 28px;
+            padding: 0;
+            border: 1px solid #1e3a5f;
+            min-height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .live-panel {
+            flex: 1;
+            background: rgba(10, 20, 35, 0.8);
+            border-radius: 28px;
+            padding: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+        }
+        .live-metric {
+            margin: 18px 0;
+            padding: 12px;
+            background: rgba(0, 50, 80, 0.5);
+            border-radius: 20px;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0ff;
+            text-shadow: 0 0 5px cyan;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 40px;
+            background: rgba(30, 50, 70, 0.9);
+            border: 1px solid cyan;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(95deg, #0066cc, #00a3cc);
+            border: none;
+        }
+        table { width: 100%; border-collapse: collapse; color: #f0f5ff; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0, 255, 255, 0.25); }
+        th { color: #aaffff; }
+        input, select { background: rgba(0, 20, 40, 0.8); border: 1px solid rgba(0, 255, 255, 0.5); border-radius: 30px; padding: 8px 12px; color: white; }
+        canvas { max-width: 100%; border-radius: 16px; }
+        .flex-cards { display: flex; gap: 20px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+<div class="system-wrapper">
+    <div class="navbar">
+        <div class="logo"><i class="fas fa-network-wired"></i> 智链全球·跨境决策融合系统 <span class="badge-version">V3.0 长三角极核</span></div>
+        <div class="notification-area">
+            <div class="notification-bell" id="notificationBell"><i class="fas fa-bell fa-lg"></i><span class="notification-badge" id="notifCount">0</span></div>
+            <div><i class="fas fa-user-astronaut"></i> 决策驾驶舱</div>
+            <div id="notificationDropdown" class="notification-dropdown"><div style="padding:12px;border-bottom:1px solid cyan;">🔔 实时动态消息</div><div id="notifList"></div></div>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <!-- 快速沙盒模拟面板 (融合 Streamlit 侧边栏) -->
+            <div class="sandbox-quick">
+                <h4><i class="fas fa-chalkboard-user"></i> 实时沙盒推演</h4>
+                <div class="slider-group"><label>📦 出口货量 (万TEU): <span id="quickVolVal">150</span></label><input type="range" id="quickVol" min="50" max="350" value="150" step="5"></div>
+                <div class="slider-group"><label>💱 汇率波动 (%): <span id="quickFxVal">0</span></label><input type="range" id="quickFx" min="-8" max="12" value="0" step="1"></div>
+                <div class="slider-group"><label>⛴️ 港口拥堵天数: <span id="quickDelayVal">0</span></label><input type="range" id="quickDelay" min="0" max="18" value="0" step="1"></div>
+                <div class="slider-group"><label>📈 海运费暴涨 (%): <span id="quickFreightVal">0</span></label><input type="range" id="quickFreight" min="0" max="200" value="0" step="10"></div>
+                <div class="slider-group"><label>🚢 航路选择:</label><select id="quickRoute"><option value="yangtze">长三角直达美西</option><option value="seasia">东南亚快线</option><option value="europe">中欧陆海联运</option></select></div>
+                <div class="sandbox-result" id="quickSandboxResult">
+                    总成本: ¥12,450万<br>运输时效: 14.2天<br>预期利润: +5.7%
+                </div>
+            </div>
+            <div class="menu-item active" data-module="home"><i class="fas fa-tachometer-alt"></i> 沙盒驾驶舱</div>
+            <div class="menu-item" data-module="order"><i class="fas fa-file-invoice"></i> 订单处理</div>
+            <div class="menu-item" data-module="warehouse"><i class="fas fa-warehouse"></i> 仓储作业</div>
+            <div class="menu-item" data-module="transport"><i class="fas fa-truck-fast"></i> 运输监控</div>
+            <div class="menu-item" data-module="customs"><i class="fas fa-passport"></i> 报关作业</div>
+            <div class="menu-item" data-module="finance"><i class="fas fa-coins"></i> 财务结算</div>
+            <div class="menu-item" data-module="decision_sandbox"><i class="fas fa-chart-line"></i> 决策沙盒·压力测试</div>
+            <div class="menu-item" data-module="basic_data"><i class="fas fa-database"></i> 基础资料设置</div>
+            <div class="menu-item" data-module="service"><i class="fas fa-headset"></i> 客户服务</div>
+        </div>
+        <div class="content-panel" id="dynamicContent"></div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ---------- 全局变量 ----------
+    let scene, camera, renderer, labelRenderer, earthMesh, cloudMesh, starField, animationId;
+    let particleLines = [];
+    let realtimeInterval;
+    let notifications = [
+        { id: 1, title: '🚢 上海港创单日吞吐记录', content: '5月8日吞吐量达15.2万TEU', time: new Date().toLocaleTimeString(), read: false },
+        { id: 2, title: '📊 汇率波动预警', content: '离岸人民币突破7.20', time: new Date().toLocaleTimeString(), read: false }
+    ];
+    function updateNotifBadge() {
+        const unread = notifications.filter(n => !n.read).length;
+        document.getElementById('notifCount').innerText = unread;
+        const listDiv = document.getElementById('notifList');
+        if(listDiv) listDiv.innerHTML = notifications.map(n => `<div style="padding:12px;border-bottom:1px solid cyan;cursor:pointer;" onclick="window.markAsRead(${n.id})"><b style="color:cyan;">${n.title}</b><div style="font-size:12px;">${n.content}</div><div style="font-size:10px;">${n.time}</div></div>`).join('');
+    }
+    window.markAsRead = function(id) { let n = notifications.find(n=>n.id===id); if(n) n.read=true; updateNotifBadge(); };
+    function addNotif(title, content) { notifications.unshift({ id: Date.now(), title, content, time: new Date().toLocaleTimeString(), read: false }); updateNotifBadge(); }
+
+    // 科技地球初始化（含上海港、宁波港高亮标注）
+    function initTechGlobe(containerId) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        if(renderer) { if(animationId) cancelAnimationFrame(animationId); if(renderer.domElement) renderer.domElement.remove(); if(labelRenderer?.domElement) labelRenderer.domElement.remove(); }
+        const width = container.clientWidth, height = container.clientHeight;
+        scene = new THREE.Scene(); scene.background = new THREE.Color(0x010211);
+        camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
+        camera.position.set(0, 0.2, 3.8);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+        container.innerHTML = ''; container.appendChild(renderer.domElement);
+        labelRenderer = new CSS2DRenderer(); labelRenderer.setSize(width, height);
+        labelRenderer.domElement.style.position = 'absolute'; labelRenderer.domElement.style.top = '0px'; labelRenderer.domElement.style.left = '0px';
+        container.style.position = 'relative'; container.appendChild(labelRenderer.domElement);
+        
+        const texLoader = new THREE.TextureLoader();
+        const earthMap = texLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+        const earthSpec = texLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg');
+        const cloudMap = texLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
+        const earthMat = new THREE.MeshPhongMaterial({ map: earthMap, specularMap: earthSpec, shininess: 5 });
+        earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), earthMat);
+        scene.add(earthMesh);
+        cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(1.008, 128, 128), new THREE.MeshPhongMaterial({ map: cloudMap, transparent: true, opacity: 0.12 }));
+        scene.add(cloudMesh);
+        
+        function makeLabel(lat, lon, name, color='#0ff') {
+            const phi = (90 - lat) * Math.PI/180, theta = lon * Math.PI/180;
+            const x = 1.06 * Math.sin(phi) * Math.cos(theta), y = 1.06 * Math.cos(phi), z = 1.06 * Math.sin(phi) * Math.sin(theta);
+            const div = document.createElement('div'); div.textContent = name;
+            div.style.cssText = `color:${color};font-size:18px;font-weight:bold;text-shadow:0 0 12px cyan;background:rgba(0,0,0,0.7);padding:4px 16px;border-radius:40px;border:2px solid ${color};backdrop-filter:blur(8px);`;
+            const label = new CSS2DObject(div); label.position.set(x, y, z); scene.add(label);
+            const marker = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.9 }));
+            marker.position.set(x, y, z); scene.add(marker);
+        }
+        makeLabel(31.23, 121.47, '🌟 上海港 (全球第一)', '#0ff');
+        makeLabel(29.86, 121.54, '⚓ 宁波舟山港 (货物吞吐第一)', '#0ff');
+        // 粒子流
+        const startPos = { x: 1.04 * Math.sin((90-31.23)*Math.PI/180)*Math.cos(121.47*Math.PI/180), y: 1.04*Math.cos((90-31.23)*Math.PI/180), z: 1.04*Math.sin((90-31.23)*Math.PI/180)*Math.sin(121.47*Math.PI/180) };
+        const targets = [[34.05, -118.24], [53.55, 9.99], [1.35, 103.87]];
+        for(let i=0;i<80;i++) {
+            const t = targets[i%3]; const phiT = (90 - t[0])*Math.PI/180, thetaT = t[1]*Math.PI/180;
+            const endPos = { x: 1.04*Math.sin(phiT)*Math.cos(thetaT), y: 1.04*Math.cos(phiT), z: 1.04*Math.sin(phiT)*Math.sin(thetaT) };
+            const particle = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6,6), new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x442200 }));
+            scene.add(particle);
+            particleLines.push({ obj: particle, start: startPos, end: endPos, progress: Math.random(), speed: 0.003+Math.random()*0.006 });
+        }
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = []; for(let i=0;i<1800;i++) starPositions.push((Math.random()-0.5)*2000, (Math.random()-0.5)*1000, (Math.random()-0.5)*300-80);
+        starGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(starPositions), 3));
+        starField = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 }));
+        scene.add(starField);
+        const ambient = new THREE.AmbientLight(0x404060), dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 3, 5); scene.add(ambient); scene.add(dirLight);
+        
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            if(earthMesh) earthMesh.rotation.y += 0.0015;
+            if(cloudMesh) cloudMesh.rotation.y += 0.0018;
+            if(starField) starField.rotation.y += 0.0003;
+            particleLines.forEach(p => { p.progress += p.speed; if(p.progress>=1) p.progress=0; const x = p.start.x+(p.end.x-p.start.x)*p.progress; const y = p.start.y+(p.end.y-p.start.y)*p.progress; const z = p.start.z+(p.end.z-p.start.z)*p.progress; p.obj.position.set(x,y,z); });
+            renderer.render(scene, camera); if(labelRenderer) labelRenderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => { if(container) { const w = container.clientWidth, h = container.clientHeight; renderer.setSize(w, h); labelRenderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix(); } });
+    }
+    function stopGlobe() { if(animationId) cancelAnimationFrame(animationId); if(renderer) renderer.dispose(); }
+
+    // ---------- 业务模块渲染 ----------
+    let orders = [{ id:'PO10001', customer:'Amazon EU', dest:'汉堡', value:124500, status:'已报关' }, { id:'PO10002', customer:'DHL', dest:'洛杉矶', value:87600, status:'运输中' }];
+    let warehouses = [{ name:'上海洋山仓', occupancy:82, days:28 }, { name:'宁波北仑仓', occupancy:68, days:35 }, { name:'苏州高新仓', occupancy:45, days:22 }];
+    let transports = [{ vessel:'EVER FORTUNE', route:'上海-洛杉矶', eta:'2025-05-15', status:'航行中' }];
+    let customers = [{ name:'DHL Global', credit:'AA' }, { name:'Amazon EU', credit:'A+' }];
+    let suppliers = [{ name:'苏州华兴源创', product:'智能控制器', leadTime:'7天' }];
+    let tickets = [{ id:'TK001', customer:'苏州电子', issue:'归类咨询', status:'处理中' }];
+    
+    function renderHome() {
+        const html = `<div><div style="display:flex; justify-content:space-between;"><h2><i class="fas fa-globe-asia"></i> 地球网络·长三角跨境决策驾驶舱</h2><div class="counter">动态模拟</div></div>
+        <div class="region-row"><div class="map-container" id="globeHome" style="height: 400px;"></div><div class="live-panel"><h3><i class="fas fa-chart-line"></i> 实时动态监测</h3>
+            <div class="live-metric"><div class="metric-title">上海港实时吞吐量 (TEU)</div><div class="metric-value" id="liveShanghai">142,300</div></div>
+            <div class="live-metric"><div class="metric-title">宁波舟山港拥堵指数</div><div class="metric-value" id="congestionIdx">0.62</div></div>
+            <div class="live-metric"><div class="metric-title">全球贸易晴雨表</div><div class="metric-value" id="globalTrade">289.4</div></div>
+        </div></div>
+        <div class="stats"><div class="stat"><div>待处理订单</div><div>32</div></div><div class="stat"><div>在途货柜</div><div>129</div></div><div class="stat"><div>沙盒模拟次数</div><div>47</div></div></div>
+        <div class="card"><input id="quickGoods" placeholder="商品AI预归类: 输入智能机械/锂电池/光伏组件"><button id="quickBtn" class="btn-primary">AI归类</button><div id="quickResult" class="live-metric" style="margin-top:12px;"></div></div>
+        <div class="flex-cards"><div class="card"><h4>🚀 快速决策入口</h4><button class="btn-primary" onclick="window.renderModule('decision_sandbox')">进入压力测试沙盒</button></div><div class="card"><h4>📊 长三角供应链月报</h4><div>上海港效率+7% | 宁波舟山新增航线</div></div></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        setTimeout(() => { initTechGlobe('globeHome'); }, 50);
+        if(realtimeInterval) clearInterval(realtimeInterval);
+        realtimeInterval = setInterval(() => {
+            let sh = (138000 + Math.floor(Math.random() * 8000)).toLocaleString();
+            let cong = (0.55 + Math.random()*0.2).toFixed(2);
+            let trade = (285 + Math.random()*12).toFixed(1);
+            if(document.getElementById('liveShanghai')) document.getElementById('liveShanghai').innerText = sh;
+            if(document.getElementById('congestionIdx')) document.getElementById('congestionIdx').innerText = cong;
+            if(document.getElementById('globalTrade')) document.getElementById('globalTrade').innerText = trade;
+        }, 4000);
+        document.getElementById('quickBtn')?.addEventListener('click', () => {
+            const goods = document.getElementById('quickGoods').value;
+            const map = {'智能机械':'HS8479.89, 低风险', '锂电池':'HS8507.60 危品注意', '光伏组件':'HS8541.43 低碳'};
+            const res = map[goods] || '请详细填写商品描述';
+            document.getElementById('quickResult').innerHTML = `<i class="fas fa-microchip"></i> AI归类: ${res}`;
+        });
+    }
+    function renderOrder() {
+        const html = `<h2>📋 订单处理</h2><div class="card"><button class="btn btn-primary" onclick="window.addOrder()">+ 新增模拟订单</button><table><thead><tr><th>订单号</th><th>客户</th><th>目的地</th><th>货值(USD)</th><th>状态</th></tr></thead><tbody id="orderTableBody"></tbody></table></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        const tbody = document.getElementById('orderTableBody');
+        if(tbody) tbody.innerHTML = orders.map(o => `<tr><td>${o.id}</td><td>${o.customer}</td><td>${o.dest}</td><td>$${o.value.toLocaleString()}</td><td>${o.status}</td></tr>`).join('');
+        window.addOrder = function() { orders.push({ id:'PO'+Date.now(), customer:'新客户', dest:'新加坡', value:45000, status:'待处理' }); renderOrder(); addNotif('订单新增','模拟订单已添加'); };
+    }
+    function renderWarehouse() {
+        const html = `<h2>🏭 仓储作业</h2><div class="card"><canvas id="wareChart" height="200"></canvas><div class="stats"><div>上海仓周转率 82% <span class="trend-up">▲3%</span></div></div></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        setTimeout(() => { const ctx = document.getElementById('wareChart')?.getContext('2d'); if(ctx) new Chart(ctx, { type: 'bar', data: { labels: warehouses.map(w=>w.name), datasets: [{ label: '库存占用率(%)', data: warehouses.map(w=>w.occupancy), backgroundColor: '#0af' }] } }); }, 50);
+    }
+    function renderTransport() {
+        const html = `<h2>🚚 运输监控</h2><div class="card"><table><thead><tr><th>船名/航次</th><th>航线</th><th>预计到港</th><th>状态</th></tr></thead><tbody>${transports.map(t => `<tr><td>${t.vessel}</td><td>${t.route}</td><td>${t.eta}</td><td>${t.status}</td></tr>`).join('')}</tbody></table><button class="btn" onclick="alert('模拟新增运输')">+ 模拟新增</button></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+    }
+    function renderCustoms() {
+        const html = `<h2>📄 报关作业 · AI智能归类</h2><div class="card"><input id="hsGoods" placeholder="商品名称"><button id="hsBtn" class="btn-primary">AI归类</button><div id="hsResult" class="live-metric" style="margin-top:16px;"></div><button class="btn" onclick="alert('模拟报关单已生成')">生成模拟报关单</button></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        document.getElementById('hsBtn')?.addEventListener('click', () => {
+            const goods = document.getElementById('hsGoods').value;
+            const map = {'锂电池':'HS 8507.60 (危品)','光伏组件':'HS 8541.43','智能机械':'HS 8479.89'};
+            document.getElementById('hsResult').innerHTML = `AI结果: ${map[goods] || '通用归类'}`;
+        });
+    }
+    function renderFinance() {
+        const html = `<h2>💰 财务结算</h2><div class="card"><canvas id="fxChart" height="150"></canvas><div class="live-metric">当前USD/CNY: 7.185 <button class="btn" onclick="alert('锁汇模拟')">锁汇策略</button></div></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        setTimeout(() => { const ctx = document.getElementById('fxChart')?.getContext('2d'); if(ctx) new Chart(ctx, { type: 'line', data: { labels: ['5/2','5/3','5/4','5/5','5/6','5/7','今日'], datasets: [{ label: 'CNH', data: [7.16,7.18,7.19,7.185,7.177,7.169,7.164], borderColor: '#0ff' }] } }); }, 50);
+    }
+    function renderDecisionSandbox() {
+        const html = `<h2>🧪 决策沙盒 · 压力测试</h2><div class="card"><div class="slider-group"><label>货量(万TEU): <span id="sandVolVal">150</span></label><input type="range" id="sandVol" min="50" max="350" value="150"></div><div class="slider-group"><label>汇率波动(%): <span id="sandFxVal">0</span></label><input type="range" id="sandFx" min="-8" max="12" value="0"></div><div class="slider-group"><label>拥堵天数: <span id="sandDelayVal">0</span></label><input type="range" id="sandDelay" min="0" max="18" value="0"></div><div class="slider-group"><label>海运费暴涨(%): <span id="sandFreightVal">0</span></label><input type="range" id="sandFreight" min="0" max="200" value="0"></div><div class="sandbox-result" id="sandResult">成本: ¥12,450万 | 利润: +5.7%</div></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        const updateSand = () => {
+            let v = parseFloat(document.getElementById('sandVol').value), fx = parseFloat(document.getElementById('sandFx').value);
+            let d = parseFloat(document.getElementById('sandDelay').value), f = parseFloat(document.getElementById('sandFreight').value);
+            document.getElementById('sandVolVal').innerText = v; document.getElementById('sandFxVal').innerText = fx;
+            document.getElementById('sandDelayVal').innerText = d; document.getElementById('sandFreightVal').innerText = f;
+            let cost = 11500 + v*17; cost = cost*(1+f/100) + d*290;
+            let profit = 5.7 - (fx/2.5) - (d/6);
+            document.getElementById('sandResult').innerHTML = `成本: ¥${Math.round(cost).toLocaleString()}万 | 利润: ${profit>0?'+':''}${profit.toFixed(1)}%`;
+        };
+        ['sandVol','sandFx','sandDelay','sandFreight'].forEach(id => document.getElementById(id).addEventListener('input', updateSand));
+        updateSand();
+    }
+    function renderBasicData() {
+        const html = `<h2>📚 基础资料设置</h2><div class="card"><h3>客户列表</h3><table><thead><tr><th>名称</th><th>信用等级</th></tr></thead><tbody id="custList"></tbody></table><button class="btn" onclick="window.addCust()">+新增客户</button><h3>供应商列表</h3><table><thead><tr><th>名称</th><th>主营产品</th></tr></thead><tbody id="supList"></tbody></table></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        function renderCust() { document.getElementById('custList').innerHTML = customers.map(c => `<tr><td>${c.name}</td><td>${c.credit}</td></tr>`).join(''); }
+        function renderSup() { document.getElementById('supList').innerHTML = suppliers.map(s => `<tr><td>${s.name}</td><td>${s.product}</td></tr>`).join(''); }
+        window.addCust = function() { customers.push({ name:'新客户', credit:'B' }); renderCust(); addNotif('客户新增','已添加'); };
+        renderCust(); renderSup();
+    }
+    function renderService() {
+        const html = `<h2>🎧 客户服务</h2><div class="card"><table><thead><tr><th>工单号</th><th>客户</th><th>问题</th><th>状态</th></tr></thead><tbody>${tickets.map(t=>`<tr><td>${t.id}</td><td>${t.customer}</td><td>${t.issue}</td><td>${t.status}</td></tr>`).join('')}</tbody></table><button class="btn" onclick="alert('创建新工单')">+ 创建工单</button></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+    }
+
+    // 快速沙盒推演更新函数（侧边栏）
+    function updateQuickSandbox() {
+        let vol = parseFloat(document.getElementById('quickVol').value);
+        let fx = parseFloat(document.getElementById('quickFx').value);
+        let delay = parseFloat(document.getElementById('quickDelay').value);
+        let freight = parseFloat(document.getElementById('quickFreight').value);
+        let route = document.getElementById('quickRoute').value;
+        document.getElementById('quickVolVal').innerText = vol;
+        document.getElementById('quickFxVal').innerText = fx;
+        document.getElementById('quickDelayVal').innerText = delay;
+        document.getElementById('quickFreightVal').innerText = freight;
+        let baseCost = 11500 + vol * 17;
+        let baseTime = 14.2;
+        let profitRatio = 5.7;
+        if(route === 'seasia') { baseTime = 11.8; baseCost *= 0.94; profitRatio += 1.2; }
+        else if(route === 'europe') { baseTime = 18.5; baseCost *= 1.08; profitRatio -= 1.5; }
+        let totalCost = baseCost * (1 + freight/100) + delay * 290;
+        profitRatio = profitRatio - (fx/2.5) - (delay/6);
+        document.getElementById('quickSandboxResult').innerHTML = `总成本: ¥${Math.round(totalCost).toLocaleString()}万<br>运输时效: ${baseTime.toFixed(1)}天<br>预期利润: ${profitRatio>0?'+':''}${profitRatio.toFixed(1)}%`;
+    }
+    ['quickVol','quickFx','quickDelay','quickFreight','quickRoute'].forEach(id => document.getElementById(id).addEventListener('input', updateQuickSandbox));
+    updateQuickSandbox();
+
+    const modules = { home: renderHome, order: renderOrder, warehouse: renderWarehouse, transport: renderTransport, customs: renderCustoms, finance: renderFinance, decision_sandbox: renderDecisionSandbox, basic_data: renderBasicData, service: renderService };
+    window.renderModule = function(mod) { if(modules[mod]) modules[mod](); document.querySelectorAll('.menu-item').forEach(it => { if(it.dataset.module === mod) it.classList.add('active'); else it.classList.remove('active'); }); if(mod !== 'home') stopGlobe(); };
+    document.querySelectorAll('.menu-item').forEach(item => item.addEventListener('click', () => window.renderModule(item.dataset.module)));
+    window.renderModule('home');
+    updateNotifBadge();
+    setInterval(() => addNotif('系统动态', '长三角港口AI调度模型已更新'), 45000);
+    document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); const d = document.getElementById('notificationDropdown'); d.style.display = d.style.display === 'block' ? 'none' : 'block'; });
+    document.addEventListener('click', () => document.getElementById('notificationDropdown').style.display = 'none');
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>智链全球 · 跨境贸易AI决策系统 | 智能增强版</title>
+    <!-- 字体与图标 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js & 其他库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Three.js核心 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* 主系统框架 - 无登录封面，直接显示 */
+        .system-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(6, 14, 24, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(0, 230, 255, 0.4);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .navbar {
+            padding: 16px 28px;
+            background: rgba(2, 12, 24, 0.8);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #fff, #00e0ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .notification-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            color: #eef;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #ef4444;
+            color: white;
+            border-radius: 30px;
+            padding: 2px 8px;
+            font-size: 10px;
+        }
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 40px;
+            width: 340px;
+            background: rgba(10, 20, 35, 0.98);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid cyan;
+            z-index: 200;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .main-layout {
+            display: flex;
+            min-height: 680px;
+        }
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 10, 20, 0.6);
+            backdrop-filter: blur(4px);
+            border-right: 1px solid rgba(0, 255, 255, 0.25);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #c4e0ff;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .menu-item i { width: 24px; color: #6cb4ff; }
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(0, 150, 255, 0.25), transparent);
+            color: #ffffff;
+            border-left: 3px solid #0ff;
+        }
+        .content-panel {
+            flex: 1;
+            padding: 24px 28px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+            color: #f0f5ff;
+        }
+        .card {
+            background: rgba(12, 22, 35, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 200, 255, 0.35);
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            flex: 1;
+            background: rgba(0, 20, 40, 0.75);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.35);
+        }
+        .region-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .map-container {
+            flex: 2;
+            background: #03060c;
+            border-radius: 28px;
+            padding: 0;
+            border: 1px solid #1e3a5f;
+            min-height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .live-panel {
+            flex: 1;
+            background: rgba(10, 20, 35, 0.8);
+            border-radius: 28px;
+            padding: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+        }
+        .live-metric {
+            margin: 18px 0;
+            padding: 12px;
+            background: rgba(0, 50, 80, 0.5);
+            border-radius: 20px;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0ff;
+            text-shadow: 0 0 5px cyan;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 40px;
+            background: rgba(30, 50, 70, 0.9);
+            border: 1px solid cyan;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(95deg, #0066cc, #00a3cc);
+            border: none;
+        }
+        table { width: 100%; border-collapse: collapse; color: #f0f5ff; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0, 255, 255, 0.25); }
+        th { color: #aaffff; }
+        input, select { background: rgba(0, 20, 40, 0.8); border: 1px solid rgba(0, 255, 255, 0.5); border-radius: 30px; padding: 8px 12px; color: white; width: 100%; }
+        .slider-group { margin: 12px 0; }
+        .flex-cards { display: flex; gap: 20px; flex-wrap: wrap; }
+        .warning { background: rgba(255, 100, 0, 0.3); border-left: 4px solid #ff6600; padding: 12px; border-radius: 16px; }
+        .port-bar { height: 8px; border-radius: 4px; margin-top: 4px; }
+        .green-bar { background: linear-gradient(90deg, #00cc66, #66ff99); }
+        .red-bar { background: linear-gradient(90deg, #ff4444, #ff8888); }
+        .yellow-bar { background: linear-gradient(90deg, #ffaa33, #ffcc66); }
+    </style>
+</head>
+<body>
+<div class="system-wrapper">
+    <div class="navbar">
+        <div class="logo"><i class="fas fa-network-wired"></i> 智链全球·AI决策系统 <span class="badge-version">实时增强版</span></div>
+        <div class="notification-area">
+            <div class="notification-bell" id="notificationBell"><i class="fas fa-bell fa-lg"></i><span class="notification-badge" id="notifCount">0</span></div>
+            <div><i class="fas fa-chart-line"></i> 实时数据驱动</div>
+            <div id="notificationDropdown" class="notification-dropdown"><div style="padding:12px;border-bottom:1px solid cyan;">🔔 动态消息</div><div id="notifList"></div></div>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-item active" data-module="home"><i class="fas fa-tachometer-alt"></i> 驾驶舱</div>
+            <div class="menu-item" data-module="order"><i class="fas fa-file-invoice"></i> 订单处理</div>
+            <div class="menu-item" data-module="warehouse"><i class="fas fa-warehouse"></i> 仓储作业</div>
+            <div class="menu-item" data-module="transport"><i class="fas fa-truck-fast"></i> 运输监控</div>
+            <div class="menu-item" data-module="customs"><i class="fas fa-passport"></i> 报关作业</div>
+            <div class="menu-item" data-module="finance"><i class="fas fa-coins"></i> 财务结算</div>
+            <div class="menu-item" data-module="sandbox"><i class="fas fa-chalkboard-user"></i> 深度沙盒模拟</div>
+            <div class="menu-item" data-module="basic_data"><i class="fas fa-database"></i> 基础资料</div>
+            <div class="menu-item" data-module="service"><i class="fas fa-headset"></i> 客户服务</div>
+        </div>
+        <div class="content-panel" id="dynamicContent"></div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ---------- 全局状态与实时数据 ----------
+    let globalState = {
+        exchangeRate: 7.185,        // USD/CNY
+        weather: { shanghai: "多云", ningbo: "小雨", temp: 18 },
+        portCongestion: { yangshan: 0.65, waigaoqiao: 0.42, ningbo: 0.78 }, // 拥堵系数 0-1
+        lastUpdate: new Date()
+    };
+    let notifications = [];
+    let realtimeTimer = null;
+    let scene, camera, renderer, labelRenderer, earthMesh, cloudMesh, starField, animationId;
+    let particleLines = [];
+    
+    // 辅助函数：更新通知UI
+    function updateNotifBadge() {
+        const unread = notifications.filter(n => !n.read).length;
+        document.getElementById('notifCount').innerText = unread;
+        const listDiv = document.getElementById('notifList');
+        if(listDiv) listDiv.innerHTML = notifications.map(n => `<div style="padding:12px;border-bottom:1px solid cyan;cursor:pointer;" onclick="markAsRead(${n.id})"><b style="color:cyan;">${n.title}</b><div style="font-size:12px;">${n.content}</div><div style="font-size:10px;">${n.time}</div></div>`).join('');
+    }
+    window.markAsRead = function(id) { let n = notifications.find(n=>n.id===id); if(n) n.read=true; updateNotifBadge(); };
+    function addNotif(title, content) { notifications.unshift({ id: Date.now(), title, content, time: new Date().toLocaleTimeString(), read: false }); updateNotifBadge(); }
+    
+    // ---------- 实时数据API接入 ----------
+    // 汇率API (exchangerate.host 免费无需key)
+    async function fetchExchangeRate() {
+        try {
+            const res = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=CNY');
+            const data = await res.json();
+            if(data.rates && data.rates.CNY) {
+                globalState.exchangeRate = data.rates.CNY;
+                document.getElementById('liveRate') && (document.getElementById('liveRate').innerText = globalState.exchangeRate.toFixed(4));
+            }
+        } catch(e) { console.warn("汇率API失败，使用模拟值"); }
+    }
+    // 天气API (OpenWeatherMap需要API key，这里使用wttr.in的免费文本接口)
+    async function fetchWeather() {
+        try {
+            const shRes = await fetch('https://wttr.in/Shanghai?format=%C+%t');
+            const shText = await shRes.text();
+            const parts = shText.split(' ');
+            globalState.weather.shanghai = parts[0] || "多云";
+            globalState.weather.temp = parseInt(parts[1]?.replace('+','')) || 18;
+            document.getElementById('weatherShanghai') && (document.getElementById('weatherShanghai').innerText = `${globalState.weather.shanghai} ${globalState.weather.temp}°C`);
+        } catch(e) { console.warn("天气API失败"); }
+    }
+    // 模拟港口吞吐压力数据 (真实场景可接入AIS数据，此处动态模拟)
+    function updatePortCongestion() {
+        // 模拟实时变化
+        globalState.portCongestion = {
+            yangshan: 0.5 + Math.random() * 0.4,
+            waigaoqiao: 0.4 + Math.random() * 0.4,
+            ningbo: 0.6 + Math.random() * 0.3
+        };
+        // 更新柱状图
+        updatePortBars();
+        // 触发AI避险建议（基于拥堵）
+        checkCongestionAlert();
+    }
+    function updatePortBars() {
+        const yangshanBar = document.getElementById('yangshanBar');
+        const waigaoBar = document.getElementById('waigaoBar');
+        const ningboBar = document.getElementById('ningboBar');
+        if(yangshanBar) yangshanBar.style.width = `${globalState.portCongestion.yangshan * 100}%`;
+        if(waigaoBar) waigaoBar.style.width = `${globalState.portCongestion.waigaoqiao * 100}%`;
+        if(ningboBar) ningboBar.style.width = `${globalState.portCongestion.ningbo * 100}%`;
+        // 修改颜色
+        const setBarColor = (el, value) => { if(el) el.className = `port-bar ${value>0.7?'red-bar':(value>0.5?'yellow-bar':'green-bar')}`; };
+        setBarColor(document.getElementById('yangshanBarColor'), globalState.portCongestion.yangshan);
+        setBarColor(document.getElementById('waigaoBarColor'), globalState.portCongestion.waigaoqiao);
+        setBarColor(document.getElementById('ningboBarColor'), globalState.portCongestion.ningbo);
+    }
+    function checkCongestionAlert() {
+        if(globalState.portCongestion.ningbo > 0.75) {
+            addNotif("⚠️ 宁波舟山港拥堵预警", "当前拥堵系数超过0.75，建议考虑分流至上海港");
+        }
+        if(globalState.portCongestion.yangshan > 0.8) {
+            addNotif("⚠️ 洋山港重度拥堵", "预计船舶等泊时间增加12小时");
+        }
+    }
+    // 定时刷新全部实时数据
+    async function refreshRealTimeData() {
+        await fetchExchangeRate();
+        await fetchWeather();
+        updatePortCongestion();
+        globalState.lastUpdate = new Date();
+        // 财务模块的AI避险检查 (汇率波动预测)
+        checkFxAlert();
+    }
+    // 汇率避险逻辑: 模拟预测未来72小时波动 (简单算法：比较过去5分钟变化)
+    let lastRate = 7.185;
+    function checkFxAlert() {
+        let current = globalState.exchangeRate;
+        let changePercent = Math.abs((current - lastRate) / lastRate) * 100;
+        if(changePercent > 0.5) {
+            addNotif("💱 汇率预警", `汇率波动 ${changePercent.toFixed(2)}% > 0.5%，建议立即锁汇或结汇！`);
+            const fxWarningDiv = document.getElementById('fxWarningMsg');
+            if(fxWarningDiv) fxWarningDiv.innerHTML = '<span class="warning">⚠️ 汇率剧烈波动，建议立即结汇规避风险</span>';
+        } else {
+            if(document.getElementById('fxWarningMsg')) document.getElementById('fxWarningMsg').innerHTML = '';
+        }
+        lastRate = current;
+    }
+    
+    // 启动定时任务 (每60秒)
+    setInterval(() => { refreshRealTimeData(); }, 60000);
+    setTimeout(() => refreshRealTimeData(), 1000);
+    
+    // ---------- Three.js 地球 (突出上海港、宁波港) ----------
+    function initTechGlobe(containerId) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        if(renderer) { if(animationId) cancelAnimationFrame(animationId); if(renderer.domElement) renderer.domElement.remove(); if(labelRenderer?.domElement) labelRenderer.domElement.remove(); }
+        const width = container.clientWidth, height = container.clientHeight;
+        scene = new THREE.Scene(); scene.background = new THREE.Color(0x010211);
+        camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
+        camera.position.set(0, 0.2, 3.8);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+        container.innerHTML = ''; container.appendChild(renderer.domElement);
+        labelRenderer = new CSS2DRenderer(); labelRenderer.setSize(width, height);
+        labelRenderer.domElement.style.position = 'absolute'; labelRenderer.domElement.style.top = '0px'; labelRenderer.domElement.style.left = '0px';
+        container.style.position = 'relative'; container.appendChild(labelRenderer.domElement);
+        
+        const texLoader = new THREE.TextureLoader();
+        const earthMap = texLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+        const earthSpec = texLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg');
+        const cloudMap = texLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
+        const earthMat = new THREE.MeshPhongMaterial({ map: earthMap, specularMap: earthSpec, shininess: 5 });
+        earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), earthMat);
+        scene.add(earthMesh);
+        cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(1.008, 128, 128), new THREE.MeshPhongMaterial({ map: cloudMap, transparent: true, opacity: 0.12 }));
+        scene.add(cloudMesh);
+        
+        function makeLabel(lat, lon, name, color='#0ff') {
+            const phi = (90 - lat) * Math.PI/180, theta = lon * Math.PI/180;
+            const x = 1.06 * Math.sin(phi) * Math.cos(theta), y = 1.06 * Math.cos(phi), z = 1.06 * Math.sin(phi) * Math.sin(theta);
+            const div = document.createElement('div'); div.textContent = name;
+            div.style.cssText = `color:${color};font-size:16px;font-weight:bold;text-shadow:0 0 12px cyan;background:rgba(0,0,0,0.7);padding:4px 12px;border-radius:40px;border:1px solid ${color};`;
+            const label = new CSS2DObject(div); label.position.set(x, y, z); scene.add(label);
+            const marker = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 16), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.8 }));
+            marker.position.set(x, y, z); scene.add(marker);
+        }
+        makeLabel(31.23, 121.47, '🌟 上海港', '#0ff');
+        makeLabel(29.86, 121.54, '⚓ 宁波舟山港', '#0ff');
+        makeLabel(30.81, 121.99, '🏭 洋山港', '#0aa');
+        makeLabel(31.38, 121.93, '🚢 外高桥', '#0aa');
+        // 粒子流模拟航线
+        const startPos = { x: 1.04 * Math.sin((90-31.23)*Math.PI/180)*Math.cos(121.47*Math.PI/180), y: 1.04*Math.cos((90-31.23)*Math.PI/180), z: 1.04*Math.sin((90-31.23)*Math.PI/180)*Math.sin(121.47*Math.PI/180) };
+        const targets = [[34.05, -118.24], [53.55, 9.99], [1.35, 103.87]];
+        for(let i=0;i<60;i++) {
+            const t = targets[i%3]; const phiT = (90 - t[0])*Math.PI/180, thetaT = t[1]*Math.PI/180;
+            const endPos = { x: 1.04*Math.sin(phiT)*Math.cos(thetaT), y: 1.04*Math.cos(phiT), z: 1.04*Math.sin(phiT)*Math.sin(thetaT) };
+            const particle = new THREE.Mesh(new THREE.SphereGeometry(0.006, 6,6), new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x442200 }));
+            scene.add(particle);
+            particleLines.push({ obj: particle, start: startPos, end: endPos, progress: Math.random(), speed: 0.004+Math.random()*0.008 });
+        }
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = []; for(let i=0;i<1500;i++) starPositions.push((Math.random()-0.5)*2000, (Math.random()-0.5)*1000, (Math.random()-0.5)*300-80);
+        starGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(starPositions), 3));
+        starField = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 }));
+        scene.add(starField);
+        const ambient = new THREE.AmbientLight(0x404060), dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 3, 5); scene.add(ambient); scene.add(dirLight);
+        
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            if(earthMesh) earthMesh.rotation.y += 0.0015;
+            if(cloudMesh) cloudMesh.rotation.y += 0.0018;
+            if(starField) starField.rotation.y += 0.0003;
+            particleLines.forEach(p => { p.progress += p.speed; if(p.progress>=1) p.progress=0; const x = p.start.x+(p.end.x-p.start.x)*p.progress; const y = p.start.y+(p.end.y-p.start.y)*p.progress; const z = p.start.z+(p.end.z-p.start.z)*p.progress; p.obj.position.set(x,y,z); });
+            renderer.render(scene, camera); if(labelRenderer) labelRenderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => { if(container) { const w = container.clientWidth, h = container.clientHeight; renderer.setSize(w, h); labelRenderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix(); } });
+    }
+    
+    // ---------- 深度沙盒模拟算法 ----------
+    function runDeepSandbox(congestionCoeff, routeChoice) {
+        // 上海港成本 = 基础运费 + 拥堵附加费
+        let shCost = 5800 + congestionCoeff * 2400;
+        // 宁波港成本 = 基础运费 + 陆运成本 + 额外费用
+        let nbCost = 5200 + (congestionCoeff>0.6 ? 1200 : 0) + 800;
+        let recommendation = shCost < nbCost ? "推荐上海港直发" : "推荐宁波港转运";
+        let costDiff = Math.abs(shCost - nbCost);
+        // 动态改变地图上的高亮 (这里模拟输出)
+        addNotif("🧠 AI路径优化", `基于当前拥堵系数${congestionCoeff}, ${recommendation}, 成本相差 $${costDiff}`);
+        return { shCost, nbCost, recommendation };
+    }
+    
+    // ---------- 各模块渲染 ----------
+    function renderHome() {
+        const html = `<div><h2>🌍 实时动态驾驶舱</h2><div class="region-row"><div class="map-container" id="globeHome"></div><div class="live-panel">
+            <h3><i class="fas fa-chart-line"></i> 实时监测指标</h3>
+            <div class="live-metric"><div>美元/离岸人民币</div><div class="metric-value" id="liveRate">${globalState.exchangeRate.toFixed(4)}</div><div id="fxWarningMsg"></div></div>
+            <div class="live-metric"><div>上海天气</div><div class="metric-value" id="weatherShanghai">加载中...</div></div>
+            <div class="live-metric"><div>港口吞吐压力柱状图 (负载率)</div>
+                <div>洋山港 <div class="port-bar" id="yangshanBarColor"><div id="yangshanBar" class="port-bar green-bar" style="width:0%"></div></div></div>
+                <div>外高桥 <div class="port-bar" id="waigaoBarColor"><div id="waigaoBar" class="port-bar green-bar" style="width:0%"></div></div></div>
+                <div>宁波舟山 <div class="port-bar" id="ningboBarColor"><div id="ningboBar" class="port-bar green-bar" style="width:0%"></div></div></div>
+            </div>
+        </div></div>
+        <div class="stats"><div class="stat"><div>待处理订单</div><div>38</div></div><div class="stat"><div>在途货柜</div><div>152</div></div><div class="stat"><div>AI决策次数</div><div>217</div></div></div>
+        <div class="card"><h4>⚡ 快速AI归类</h4><input id="quickGoods" placeholder="商品名称 (锂电池/光伏组件/智能机械)"><button id="quickBtn" class="btn-primary">归类</button><div id="quickResult"></div></div>
+        </div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        setTimeout(() => { initTechGlobe('globeHome'); updatePortBars(); }, 50);
+        document.getElementById('quickBtn')?.addEventListener('click', () => {
+            let goods = document.getElementById('quickGoods').value;
+            let map = {'锂电池':'HS 8507.60 (危品)','光伏组件':'HS 8541.43','智能机械':'HS 8479.89'};
+            document.getElementById('quickResult').innerHTML = `<div class="live-metric">AI归类: ${map[goods] || '通用HS编码'}</div>`;
+        });
+    }
+    function renderOrder() { document.getElementById('dynamicContent').innerHTML = `<h2>📋 订单处理</h2><div class="card"></table><thead><tr><th>订单号</th><th>客户</th><th>货值</th><th>状态</th></tr></thead><tbody><tr><td>PO10001</td><td>Amazon EU</td><td>$124,500</td><td>已报关</td></tr><tr><td>PO10002</td><td>DHL</td><td>$87,600</td><td>运输中</td></tr></tbody></table><button class="btn" onclick="alert('同步新订单')">同步平台订单</button></div>`; }
+    function renderWarehouse() { document.getElementById('dynamicContent').innerHTML = `<h2>🏭 仓储作业</h2><div class="card"><canvas id="wareChart"></canvas></div>`; setTimeout(()=>{new Chart(document.getElementById('wareChart'),{type:'bar',data:{labels:['洋山仓','外高桥仓','宁波仓'],datasets:[{label:'库存占用率(%)',data:[82,68,75]}]}});},100); }
+    function renderTransport() { document.getElementById('dynamicContent').innerHTML = `<h2>🚚 运输监控</h2><div class="card"><table><thead><tr><th>船名</th><th>航线</th><th>ETA</th></tr></thead><tbody><tr><td>EVER FORTUNE</td><td>上海-洛杉矶</td><td>2025-05-15</td></tr></tbody></table></div>`; }
+    function renderCustoms() { document.getElementById('dynamicContent').innerHTML = `<h2>📄 报关作业</h2><div class="card"><input id="hsGoods" placeholder="商品名"><button id="hsBtn">AI归类</button><div id="hsRes"></div></div>`; document.getElementById('hsBtn')?.addEventListener('click',()=>{document.getElementById('hsRes').innerHTML='HS 8479.89';}); }
+    function renderFinance() { 
+        const html = `<h2>💰 财务结算 · AI汇率避险</h2><div class="card"><canvas id="fxChart"></canvas><div class="live-metric" id="fxAdvise">预测未来72小时波动 <span id="fxPred">0.3%</span></div><button class="btn-primary" id="hedgeBtn">一键锁汇建议</button></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        setTimeout(()=>{new Chart(document.getElementById('fxChart'),{type:'line',data:{labels:['D-5','D-4','D-3','D-2','昨日','今日'],datasets:[{label:'USD/CNY',data:[7.16,7.18,7.19,7.185,7.177,globalState.exchangeRate],borderColor:'#0ff'}]}});},100);
+        document.getElementById('hedgeBtn')?.addEventListener('click',()=>{alert("已模拟锁汇操作，锁定汇率7.18");});
+        setInterval(()=>{const pred = (Math.random()*0.8).toFixed(1); document.getElementById('fxPred') && (document.getElementById('fxPred').innerText=pred+'%'); if(parseFloat(pred)>0.5) document.getElementById('fxAdvise').innerHTML += '<span class="warning"> ⚠️ 波动超阈值，建议立即结汇</span>';},10000);
+    }
+    function renderSandbox() {
+        const html = `<h2>🧪 深度沙盒模拟 · AI路径优化</h2><div class="card"><div class="slider-group"><label>上海港拥堵系数 (0~1): <span id="congVal">0.5</span></label><input type="range" id="congSlider" min="0" max="1" step="0.01" value="0.5"></div>
+        <div class="slider-group"><label>航线偏好:</label><select id="routePref"><option value="cost">成本优先</option><option value="time">时效优先</option></select></div>
+        <button id="runDeepSim" class="btn-primary">运行AI推演</button>
+        <div id="deepResult" class="live-metric" style="margin-top:16px;">上海港成本: $5800, 宁波港成本: $5200<br>AI推荐: 宁波港转运</div>
+        <div id="routeAdvice"></div></div>`;
+        document.getElementById('dynamicContent').innerHTML = html;
+        const slider = document.getElementById('congSlider');
+        const resultDiv = document.getElementById('deepResult');
+        const runBtn = document.getElementById('runDeepSim');
+        function updateSim() {
+            let coeff = parseFloat(slider.value);
+            document.getElementById('congVal').innerText = coeff;
+            let res = runDeepSandbox(coeff, document.getElementById('routePref').value);
+            resultDiv.innerHTML = `上海港成本: $${res.shCost} , 宁波港成本: $${res.nbCost}<br>🧠 ${res.recommendation}`;
+        }
+        slider.addEventListener('input', updateSim);
+        runBtn.addEventListener('click', updateSim);
+        updateSim();
+    }
+    function renderBasicData() { document.getElementById('dynamicContent').innerHTML = `<h2>📚 基础资料</h2><div class="card"><h3>客户/供应商</h3><p>示例数据：DHL、苏州华兴源创</p></div>`; }
+    function renderService() { document.getElementById('dynamicContent').innerHTML = `<h2>🎧 客户服务</h2><div class="card">工单系统模拟</div>`; }
+    
+    const modules = { home: renderHome, order: renderOrder, warehouse: renderWarehouse, transport: renderTransport, customs: renderCustoms, finance: renderFinance, sandbox: renderSandbox, basic_data: renderBasicData, service: renderService };
+    window.renderModule = function(mod) { if(modules[mod]) modules[mod](); document.querySelectorAll('.menu-item').forEach(it => { if(it.dataset.module === mod) it.classList.add('active'); else it.classList.remove('active'); }); if(mod !== 'home') { if(animationId) cancelAnimationFrame(animationId); if(renderer) renderer.dispose(); } };
+    document.querySelectorAll('.menu-item').forEach(item => item.addEventListener('click', () => window.renderModule(item.dataset.module)));
+    window.renderModule('home');
+    updateNotifBadge();
+    document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); const d = document.getElementById('notificationDropdown'); d.style.display = d.style.display === 'block' ? 'none' : 'block'; });
+    document.addEventListener('click', () => document.getElementById('notificationDropdown').style.display = 'none');
+</script>
+</body>
+</html>
