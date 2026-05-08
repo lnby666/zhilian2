@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>智链全球 · 跨境贸易AI决策系统 | 仓储作业增强版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .system-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(6, 14, 24, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(0, 230, 255, 0.4);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .navbar {
+            padding: 16px 28px;
+            background: rgba(2, 12, 24, 0.8);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #fff, #00e0ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .notification-area { display: flex; gap: 20px; align-items: center; position: relative; }
+        .notification-bell { cursor: pointer; color: #eef; position: relative; }
+        .notification-badge { position: absolute; top: -8px; right: -12px; background: #ef4444; color: white; border-radius: 30px; padding: 2px 8px; font-size: 10px; }
+        .notification-dropdown { position: absolute; right: 0; top: 40px; width: 340px; background: rgba(10,20,35,0.98); backdrop-filter: blur(12px); border-radius: 20px; border: 1px solid cyan; display: none; z-index: 200; max-height: 400px; overflow-y: auto; }
+        .main-layout { display: flex; min-height: 680px; }
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 10, 20, 0.6);
+            backdrop-filter: blur(4px);
+            border-right: 1px solid rgba(0, 255, 255, 0.25);
+            padding: 20px 0;
+        }
+        .menu-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #c4e0ff;
+            transition: 0.2s;
+        }
+        .menu-item i { width: 24px; }
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(0, 150, 255, 0.25), transparent);
+            color: #fff;
+            border-left: 3px solid #0ff;
+        }
+        .content-panel {
+            flex: 1;
+            padding: 24px 28px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+            color: #f0f5ff;
+        }
+        .card {
+            background: rgba(12, 22, 35, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 200, 255, 0.35);
+        }
+        .filter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; align-items: flex-end; }
+        .filter-item { flex: 1; min-width: 150px; }
+        .filter-item label { display: block; font-size: 0.75rem; margin-bottom: 4px; color: #aaf; }
+        input, select, button {
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 8px 12px;
+            color: white;
+            width: 100%;
+        }
+        .btn, .btn-primary {
+            background: linear-gradient(95deg, #0066cc, #00a3cc);
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid cyan;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0, 255, 255, 0.25); }
+        th { color: #aaffff; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+        }
+        .badge-inbound { background: #33cc66; color: #1a1a2e; }
+        .badge-outbound { background: #ffaa33; color: #1a1a2e; }
+        .badge-inventory { background: #3399ff; color: white; }
+        .modal {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #0a1428; border-radius: 32px; padding: 24px;
+            width: 500px; max-width: 90%; border: 1px solid cyan;
+        }
+        .flex { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .form-row > * { flex: 1; }
+        .stats { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat { flex: 1; background: rgba(0,20,40,0.75); border-radius: 24px; padding: 20px; text-align: center; border: 1px solid rgba(0,255,255,0.35); }
+    </style>
+</head>
+<body>
+<div class="system-wrapper">
+    <div class="navbar">
+        <div class="logo"><i class="fas fa-network-wired"></i> 智链全球·AI决策系统 <span style="font-size: 0.8rem;">仓储作业增强版</span></div>
+        <div class="notification-area">
+            <div class="notification-bell" id="notificationBell"><i class="fas fa-bell fa-lg"></i><span class="notification-badge" id="notifCount">0</span></div>
+            <div><i class="fas fa-chart-line"></i> 实时数据</div>
+            <div id="notificationDropdown" class="notification-dropdown"><div style="padding:12px;">🔔 消息中心</div><div id="notifList"></div></div>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-item" data-module="home"><i class="fas fa-tachometer-alt"></i> 驾驶舱</div>
+            <div class="menu-item" data-module="order"><i class="fas fa-file-invoice"></i> 订单管理</div>
+            <div class="menu-item active" data-module="warehouse"><i class="fas fa-warehouse"></i> 仓储作业</div>
+            <div class="menu-item" data-module="transport"><i class="fas fa-truck-fast"></i> 运输监控</div>
+            <div class="menu-item" data-module="customs"><i class="fas fa-passport"></i> 报关作业</div>
+            <div class="menu-item" data-module="finance"><i class="fas fa-coins"></i> 财务结算</div>
+            <div class="menu-item" data-module="sandbox"><i class="fas fa-chalkboard-user"></i> 深度沙盒</div>
+            <div class="menu-item" data-module="basic"><i class="fas fa-database"></i> 基础资料</div>
+        </div>
+        <div class="content-panel" id="dynamicContent"></div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ---------- 仓储作业模拟数据 ----------
+    let warehouseRecords = [
+        { id: 'WH001', productCode: 'P10001', productName: '智能控制器', location: '上海洋山仓', stock: 1250, operationType: 'inbound', operationDate: '2025-05-01', operator: '张明', history: '入库质检合格，上架A区', inventoryHistory: [{ date: '2025-05-01', stock: 1250, event: '入库' }] },
+        { id: 'WH002', productCode: 'P10002', productName: '光伏组件', location: '宁波北仑仓', stock: 860, operationType: 'outbound', operationDate: '2025-05-02', operator: '李芳', history: '出库发往美国，物流单号USPS123', inventoryHistory: [{ date: '2025-05-02', stock: 860, event: '出库500' }] },
+        { id: 'WH003', productCode: 'P10003', productName: '锂电池组', location: '苏州高新仓', stock: 2400, operationType: 'inventory', operationDate: '2025-05-03', operator: '王强', history: '月度盘点，账实相符', inventoryHistory: [{ date: '2025-05-03', stock: 2400, event: '盘点' }] },
+        { id: 'WH004', productCode: 'P10004', productName: '工业机器人', location: '上海洋山仓', stock: 35, operationType: 'outbound', operationDate: '2025-05-04', operator: '陈丽', history: '出库至苏州工厂，物流单号SF12345', inventoryHistory: [{ date: '2025-05-04', stock: 35, event: '出库15台' }] }
+    ];
+    let nextRecordId = 100;
+
+    // 通知系统
+    let notifications = [];
+    function updateNotifBadge() {
+        const unread = notifications.filter(n => !n.read).length;
+        document.getElementById('notifCount').innerText = unread;
+        const listDiv = document.getElementById('notifList');
+        if(listDiv) listDiv.innerHTML = notifications.map(n => `<div style="padding:12px;border-bottom:1px solid cyan;cursor:pointer;" onclick="markAsRead(${n.id})"><b style="color:cyan;">${n.title}</b><div>${n.content}</div><div style="font-size:10px;">${n.time}</div></div>`).join('');
+    }
+    window.markAsRead = function(id) { let n = notifications.find(n=>n.id===id); if(n) n.read=true; updateNotifBadge(); };
+    function addNotif(title, content) { notifications.unshift({ id: Date.now(), title, content, time: new Date().toLocaleTimeString(), read: false }); updateNotifBadge(); }
+
+    // ---------- 仓储作业模块渲染 ----------
+    let currentFilters = { productCode: '', productName: '', location: '', operationType: '', dateStart: '', dateEnd: '', operationStatus: '' };
+    
+    function renderWarehouseTable() {
+        let filtered = warehouseRecords.filter(record => {
+            if (currentFilters.productCode && !record.productCode.includes(currentFilters.productCode)) return false;
+            if (currentFilters.productName && !record.productName.includes(currentFilters.productName)) return false;
+            if (currentFilters.location && record.location !== currentFilters.location) return false;
+            if (currentFilters.operationType && record.operationType !== currentFilters.operationType) return false;
+            if (currentFilters.dateStart && record.operationDate < currentFilters.dateStart) return false;
+            if (currentFilters.dateEnd && record.operationDate > currentFilters.dateEnd) return false;
+            if (currentFilters.operationStatus) {
+                if (currentFilters.operationStatus === 'pending' && record.operationType !== 'inbound') return false;
+                if (currentFilters.operationStatus === 'completed' && !record.history) return false;
+            }
+            return true;
+        });
+        const tbody = document.getElementById('warehouseTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = filtered.map(record => `
+            <tr>
+                <td>${record.id}</td>
+                <td>${record.productName}</td>
+                <td>${record.location}</td>
+                <td>${record.stock}</td>
+                <td><span class="badge badge-${record.operationType === 'inbound' ? 'inbound' : (record.operationType === 'outbound' ? 'outbound' : 'inventory')}">${record.operationType === 'inbound' ? '入库' : (record.operationType === 'outbound' ? '出库' : '盘点')}</span></td>
+                <td>${record.operationDate}</td>
+                <td>${record.operator}</td>
+                <td>
+                    <button class="btn-outline btn" style="padding:4px 12px;" onclick="viewStockDetail('${record.id}')">库存详情</button>
+                    <button class="btn-outline btn" style="padding:4px 12px;" onclick="processOutbound('${record.id}')">出库处理</button>
+                    <button class="btn-outline btn" style="padding:4px 12px;" onclick="viewInventoryRecord('${record.id}')">盘点记录</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // 库存详情弹窗
+    window.viewStockDetail = (id) => {
+        const record = warehouseRecords.find(r => r.id === id);
+        if (!record) return;
+        const historyHtml = record.inventoryHistory.map(h => `<div>${h.date} - ${h.event}: 库存 ${h.stock}</div>`).join('');
+        const modalHtml = `
+            <div class="modal" id="detailModal">
+                <div class="modal-content">
+                    <h3>📦 库存详情</h3>
+                    <p><strong>货品编号:</strong> ${record.productCode}</p>
+                    <p><strong>货品名称:</strong> ${record.productName}</p>
+                    <p><strong>仓库位置:</strong> ${record.location}</p>
+                    <p><strong>当前库存:</strong> ${record.stock}</p>
+                    <p><strong>库存历史:</strong></p>
+                    <div style="background:#0a1a2a; border-radius:16px; padding:12px;">${historyHtml}</div>
+                    <div class="flex"><button class="btn" onclick="closeModal()">关闭</button></div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    };
+
+    // 出库处理弹窗
+    window.processOutbound = (id) => {
+        const record = warehouseRecords.find(r => r.id === id);
+        const modalHtml = `
+            <div class="modal" id="outboundModal">
+                <div class="modal-content">
+                    <h3>🚚 出库处理</h3>
+                    <div class="form-row"><label>货品名称</label><input id="outProduct" value="${record.productName}" disabled></div>
+                    <div class="form-row"><label>当前库存</label><input id="outCurrentStock" value="${record.stock}" disabled></div>
+                    <div class="form-row"><label>出库数量</label><input id="outQuantity" type="number" placeholder="请输入出库数量" max="${record.stock}"></div>
+                    <div class="form-row"><label>物流单号</label><input id="trackingNo" placeholder="物流单号"></div>
+                    <div class="form-row"><label>备注</label><textarea id="outRemark" rows="2"></textarea></div>
+                    <div class="flex"><button class="btn" onclick="closeModal()">取消</button><button class="btn-primary" onclick="confirmOutbound('${id}')">确认出库</button></div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    };
+
+    window.confirmOutbound = (id) => {
+        const record = warehouseRecords.find(r => r.id === id);
+        const quantity = parseInt(document.getElementById('outQuantity').value);
+        const trackingNo = document.getElementById('trackingNo').value;
+        const remark = document.getElementById('outRemark').value;
+        if (isNaN(quantity) || quantity <= 0) { alert('请输入有效数量'); return; }
+        if (quantity > record.stock) { alert('出库数量超过当前库存'); return; }
+        record.stock -= quantity;
+        record.operationType = 'outbound';
+        record.operationDate = new Date().toISOString().slice(0,10);
+        record.operator = '系统操作员';
+        record.history = `出库 ${quantity} 件，物流单号: ${trackingNo || '无'}，备注: ${remark}`;
+        record.inventoryHistory.push({ date: new Date().toISOString().slice(0,10), stock: record.stock, event: `出库${quantity}` });
+        renderWarehouseTable();
+        addNotif('出库作业', `货品 ${record.productName} 出库 ${quantity} 件，当前库存 ${record.stock}`);
+        closeModal();
+    };
+
+    // 盘点记录弹窗
+    window.viewInventoryRecord = (id) => {
+        const record = warehouseRecords.find(r => r.id === id);
+        // 模拟盘点差异分析
+        const expectedStock = record.stock + (Math.random() * 10 - 5).toFixed(0);
+        const variance = record.stock - expectedStock;
+        const analysis = variance === 0 ? '账实相符' : (variance > 0 ? `盘盈 ${variance} 件` : `盘亏 ${-variance} 件`);
+        const modalHtml = `
+            <div class="modal" id="inventoryModal">
+                <div class="modal-content">
+                    <h3>📋 盘点记录与差异分析</h3>
+                    <p><strong>货品名称:</strong> ${record.productName}</p>
+                    <p><strong>仓库位置:</strong> ${record.location}</p>
+                    <p><strong>系统库存:</strong> ${record.stock}</p>
+                    <p><strong>实盘数量:</strong> ${expectedStock}</p>
+                    <p><strong>差异分析:</strong> ${analysis}</p>
+                    <p><strong>上次盘点日期:</strong> ${record.operationDate}</p>
+                    <p><strong>盘点人:</strong> ${record.operator}</p>
+                    <div class="flex"><button class="btn" onclick="closeModal()">关闭</button></div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    };
+
+    window.closeModal = () => { document.querySelectorAll('.modal').forEach(m => m.remove()); };
+
+    // 渲染完整仓储作业模块
+    function renderWarehouseModule() {
+        const html = `
+            <h2><i class="fas fa-warehouse"></i> 仓储作业 · 跨境库存管理</h2>
+            <!-- 多条件检索区域 -->
+            <div class="card">
+                <div class="filter-row">
+                    <div class="filter-item"><label>货品编号</label><input id="filterProductCode" placeholder="精确/模糊匹配"></div>
+                    <div class="filter-item"><label>货品名称</label><input id="filterProductName" placeholder="模糊匹配"></div>
+                    <div class="filter-item"><label>仓库位置</label><select id="filterLocation"><option value="">全部</option><option>上海洋山仓</option><option>宁波北仑仓</option><option>苏州高新仓</option></select></div>
+                    <div class="filter-item"><label>作业类型</label><select id="filterOpType"><option value="">全部</option><option value="inbound">入库</option><option value="outbound">出库</option><option value="inventory">盘点</option></select></div>
+                    <div class="filter-item"><label>作业日期范围</label><input type="date" id="filterDateStart"> 至 <input type="date" id="filterDateEnd"></div>
+                    <div class="filter-item"><label>作业状态</label><select id="filterStatus"><option value="">全部</option><option value="pending">待处理</option><option value="completed">已完成</option></select></div>
+                    <div class="filter-item"><button id="searchWarehouseBtn" class="btn-primary">🔍 查询</button></div>
+                </div>
+            </div>
+            <!-- 仓储作业数据表格 -->
+            <div class="card">
+                <h3>📊 仓储作业记录</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr><th>作业编号</th><th>货品名称</th><th>仓库位置</th><th>当前库存</th><th>作业类型</th><th>作业日期</th><th>操作员</th><th>操作</th></tr>
+                        </thead>
+                        <tbody id="warehouseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 快速新增作业表单（可选） -->
+            <div class="card">
+                <h3>➕ 新增作业记录</h3>
+                <div class="form-row">
+                    <div><label>货品名称</label><input id="newProductName" placeholder="货品名称"></div>
+                    <div><label>仓库位置</label><select id="newLocation"><option>上海洋山仓</option><option>宁波北仑仓</option><option>苏州高新仓</option></select></div>
+                    <div><label>作业类型</label><select id="newOpType"><option value="inbound">入库</option><option value="outbound">出库</option><option value="inventory">盘点</option></select></div>
+                    <div><label>数量/库存</label><input id="newStock" type="number" placeholder="库存数量"></div>
+                </div>
+                <div class="flex"><button class="btn-primary" id="addWarehouseRecordBtn">提交作业</button></div>
+            </div>
+        `;
+        document.getElementById('dynamicContent').innerHTML = html;
+        renderWarehouseTable();
+        // 绑定查询事件
+        document.getElementById('searchWarehouseBtn').addEventListener('click', () => {
+            currentFilters = {
+                productCode: document.getElementById('filterProductCode').value,
+                productName: document.getElementById('filterProductName').value,
+                location: document.getElementById('filterLocation').value,
+                operationType: document.getElementById('filterOpType').value,
+                dateStart: document.getElementById('filterDateStart').value,
+                dateEnd: document.getElementById('filterDateEnd').value,
+                operationStatus: document.getElementById('filterStatus').value
+            };
+            renderWarehouseTable();
+        });
+        // 新增作业
+        document.getElementById('addWarehouseRecordBtn').addEventListener('click', () => {
+            const newRecord = {
+                id: `WH${nextRecordId++}`,
+                productCode: `P${10000 + Math.floor(Math.random() * 9000)}`,
+                productName: document.getElementById('newProductName').value || '新货品',
+                location: document.getElementById('newLocation').value,
+                stock: parseInt(document.getElementById('newStock').value) || 0,
+                operationType: document.getElementById('newOpType').value,
+                operationDate: new Date().toISOString().slice(0,10),
+                operator: '当前用户',
+                history: '新建作业记录',
+                inventoryHistory: [{ date: new Date().toISOString().slice(0,10), stock: parseInt(document.getElementById('newStock').value) || 0, event: '新建记录' }]
+            };
+            warehouseRecords.unshift(newRecord);
+            renderWarehouseTable();
+            addNotif('仓储作业', `新增 ${newRecord.operationType === 'inbound' ? '入库' : (newRecord.operationType === 'outbound' ? '出库' : '盘点')} 记录成功`);
+        });
+    }
+
+    // 其他模块占位（保持系统完整性）
+    function renderHome() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>驾驶舱</h2><p>地球视图与实时监测已集成，请通过菜单访问仓储作业模块。</p></div>`; }
+    function renderOrder() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>订单管理</h2><p>完整订单管理功能请参考上一版本实现。</p></div>`; }
+    function renderTransport() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>运输监控</h2><p>实时轨迹</p></div>`; }
+    function renderCustoms() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>报关作业</h2><p>AI归类</p></div>`; }
+    function renderFinance() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>财务结算</h2><p>汇率避险看板</p></div>`; }
+    function renderSandbox() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>深度沙盒</h2><p>拥堵系数优化模拟</p></div>`; }
+    function renderBasic() { document.getElementById('dynamicContent').innerHTML = `<div class="card"><h2>基础资料</h2><p>客户/供应商管理</p></div>`; }
+
+    const modules = { home: renderHome, order: renderOrder, warehouse: renderWarehouseModule, transport: renderTransport, customs: renderCustoms, finance: renderFinance, sandbox: renderSandbox, basic: renderBasic };
+    window.renderModule = function(mod) {
+        if(modules[mod]) modules[mod]();
+        document.querySelectorAll('.menu-item').forEach(it => {
+            if(it.dataset.module === mod) it.classList.add('active');
+            else it.classList.remove('active');
+        });
+    };
+    document.querySelectorAll('.menu-item').forEach(item => item.addEventListener('click', () => window.renderModule(item.dataset.module)));
+    window.renderModule('warehouse');  // 默认显示仓储作业模块
+    updateNotifBadge();
+    document.getElementById('notificationBell')?.addEventListener('click', (e) => { e.stopPropagation(); const d = document.getElementById('notificationDropdown'); d.style.display = d.style.display === 'block' ? 'none' : 'block'; });
+    document.addEventListener('click', () => document.getElementById('notificationDropdown').style.display = 'none');
+</script>
+</body>
+</html>
